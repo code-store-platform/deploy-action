@@ -1,5 +1,5 @@
 ---
-name: 'Deploy to Arc XP'
+name: 'Deploy to Arc XP by code.store'
 description: 'This is an action which makes it convenient to deploy to Arc XP'
 author: 'Arc XP'
 branding:
@@ -50,3 +50,11 @@ inputs:
     description: This is an option that would allow you to skip promoting a version. If `deploy` is false, and this is true, the workflow will fail.
     required: false
     default: true
+  terminate-retry-count:
+    description: 'The number of times to retry terminating the oldest build if the initial attempt fails'
+    required: false
+    default: 3
+  terminate-retry-delay:
+    description: 'The number of seconds to wait between termination retries'
+    required: false
+    default: 10

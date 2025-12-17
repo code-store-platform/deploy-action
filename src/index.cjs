@@ -24,6 +24,8 @@ const runContext = {
   retryCount: core.getInput('retry-count'),
   retryDelay: core.getInput('retry-delay'),
   minimumRunningVersions: core.getInput('minimum-running-versions'),
+  terminateRetryCount: core.getInput('terminate-retry-count'),
+  terminateRetryDelay: core.getInput('terminate-retry-delay'),
   shouldDeploy: ['true', true].includes(core.getInput('deploy')),
   shouldPromote: ['true', true].includes(core.getInput('promote')),
   client: new HttpClient('nodejs - GitHub Actions - arcxp/deploy-action', [], {

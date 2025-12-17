@@ -19,14 +19,14 @@ This action requires that you have an Arc XP account. It will use your Arc XP AP
 ## Usage
 
 ```yaml
-      - name: Perform the deploy
-        if: ${{ success() }}
-        uses: arcxp/deploy-action@v1
-        with:
-          org-id: your-org-here
-          api-key: "${{ secrets.YOUR_DEPLOYER_TOKEN_HERE }}"
-          api-hostname: api.sandbox.your-org-here.arcpublishing.com
-          bundle-prefix: action-demo-1
+- name: Perform the deploy
+  if: ${{ success() }}
+  uses: arcxp/deploy-action@v1
+  with:
+    org-id: your-org-here
+    api-key: '${{ secrets.YOUR_DEPLOYER_TOKEN_HERE }}'
+    api-hostname: api.sandbox.your-org-here.arcpublishing.com
+    bundle-prefix: action-demo-1
 ```
 
 ## Inputs
@@ -70,6 +70,14 @@ This is an option that would allow you to skip deployment. Default `true`.
 ### `promote`
 
 This is an option that would allow you to skip promoting a version. If `deploy` is false, and this is true, the workflow will fail. Default `true`.
+
+### `terminate-retry-count`
+
+The number of times to retry terminating the oldest build if the initial attempt fails. This helps prevent workflow failures when individual builds cannot be terminated. Default `3`.
+
+### `terminate-retry-delay`
+
+The number of seconds to wait between termination retries. Used in conjunction with `terminate-retry-count`. Default `10`.
 
 ## Example
 
@@ -129,9 +137,12 @@ jobs:
         uses: arcxp/deploy-action@v1
         with:
           org-id: your-org-here
-          api-key: "${{ secrets.SANDBOX_DEPLOYER_TOKEN }}"
+          api-key: '${{ secrets.SANDBOX_DEPLOYER_TOKEN }}'
           api-hostname: api.sandbox.your-org-here.arcpublishing.com
           bundle-prefix: bundle-prefix-here
+          # Optional: Configure termination retry behavior
+          terminate-retry-count: 5
+          terminate-retry-delay: 15
 ```
 
 ## License
