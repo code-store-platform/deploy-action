@@ -11,9 +11,11 @@ A **Git submodule** allows you to include an external Git repository as a subdir
 
 In this case, we use a submodule to include the `deploy-action` repository in your project, giving you access to the built deployment script.
 
-## Setup: Adding as a Submodule
+## Setup (Optional: Using as a Submodule)
 
-### Step 1: Add the submodule to your project
+The template automatically clones the repository if needed, so submodules are optional. However, using a submodule can be beneficial for version control and consistency.
+
+### Add the submodule to your project
 
 ```bash
 git submodule add https://github.com/code-store-platform/deploy-action.git deploy-action
@@ -24,7 +26,7 @@ This will:
 - Create a `.gitmodules` file tracking the submodule
 - Commit the submodule reference to your repository
 
-### Step 2: Update after cloning
+### Update after cloning
 
 If you clone a repository that already has this submodule, run:
 
@@ -38,7 +40,9 @@ Or during initial clone:
 git clone --recurse-submodules <your-repo-url>
 ```
 
-## Using the Deploy Script
+## Using the Deploy Template
+
+The template automatically clones the `deploy-action` repository if it's not already present (e.g., from a submodule). You can use it with or without submodules.
 
 Add the following to your `azure-pipelines.yml`:
 
@@ -67,14 +71,13 @@ stages:
     jobs:
       - job: DeployJob
         steps:
-          - script: node ./deploy-action/dist/index.cjs
-            displayName: 'Deploy to Arc XP'
-            env:
-              INPUT_ORG_ID: $(ARC_XP_ORG_ID)
-              INPUT_API_KEY: $(ARC_XP_API_KEY)
-              INPUT_API_HOSTNAME: $(ARC_XP_API_HOSTNAME)
-              INPUT_BUNDLE_PREFIX: 'my-bundle'
-              INPUT_ARTIFACT: 'dist/fusion-bundle.zip'
+          - template: deploy-action/azure-templates.yml
+            parameters:
+              orgId: $(ARC_XP_ORG_ID)
+              apiKey: $(ARC_XP_API_KEY)
+              apiHostname: $(ARC_XP_API_HOSTNAME)
+              bundlePrefix: 'my-bundle'
+              artifact: 'dist/fusion-bundle.zip'
 ```
 
 ## Configuration
@@ -163,24 +166,17 @@ stages:
         steps:
           - checkout: self
             fetchDepth: 0
-            submodules: recursive
 
-          - task: NodeTool@0
-            inputs:
-              versionSpec: '20.x'
-            displayName: 'Install Node.js'
-
-          - script: node ./deploy-action/dist/index.cjs
-            displayName: 'Deploy PageBuilder bundle'
-            env:
-              INPUT_ORG_ID: $(ARC_XP_ORG_ID)
-              INPUT_API_KEY: $(ARC_XP_API_KEY)
-              INPUT_API_HOSTNAME: $(ARC_XP_API_HOSTNAME)
-              INPUT_BUNDLE_PREFIX: 'my-bundle'
-              INPUT_PAGEBUILDER_VERSION: 'latest'
-              INPUT_ARTIFACT: 'dist/fusion-bundle.zip'
-              INPUT_RETRY_COUNT: '10'
-              INPUT_MINIMUM_RUNNING_VERSIONS: '7'
+          - template: deploy-action/azure-templates.yml
+            parameters:
+              orgId: $(ARC_XP_ORG_ID)
+              apiKey: $(ARC_XP_API_KEY)
+              apiHostname: $(ARC_XP_API_HOSTNAME)
+              bundlePrefix: 'my-bundle'
+              pagebuilderVersion: 'latest'
+              artifact: 'dist/fusion-bundle.zip'
+              retryCount: '10'
+              minimumRunningVersions: '7'
 ```
 
 ## Managing Submodules

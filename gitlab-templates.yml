@@ -1,8 +1,8 @@
 # GitLab CI reusable job template for deploying to Arc XP
 #
-# Usage in your .gitlab-ci.yml:
+# Usage in your .gitlab-ci.yml (with submodule):
 #   include:
-#     - remote: 'https://github.com/code-store-platform/deploy-action/raw/main/.gitlab/ci/deploy-arcxp.yml'
+#     - local: 'deploy-action/gitlab-templates.yml'
 #
 #   deploy_arcxp:
 #     extends: .deploy_to_arcxp
@@ -11,14 +11,18 @@
 #       ARC_XP_API_KEY: $ARC_XP_API_KEY
 #       ARC_XP_API_HOSTNAME: $ARC_XP_API_HOSTNAME
 #       BUNDLE_PREFIX: "my-bundle"
+#
 
 .deploy_to_arcxp:
   image: node:20
   stage: deploy
   script:
-    - npm ci
-    - npm run build
-    - node dist/index.cjs
+    # Clone deploy-action if not already present (works with or without submodules)
+    - |
+      if [ ! -d "deploy-action" ]; then
+        git clone https://github.com/code-store-platform/deploy-action.git deploy-action
+      fi
+    - node deploy-action/dist/index.cjs
   variables:
     INPUT_ORG_ID: $ARC_XP_ORG_ID
     INPUT_API_KEY: $ARC_XP_API_KEY

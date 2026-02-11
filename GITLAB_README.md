@@ -8,16 +8,20 @@ Add the following to your `.gitlab-ci.yml`:
 
 ```yaml
 include:
-  - remote: 'https://github.com/code-store-platform/deploy-action/raw/main/.gitlab/ci/deploy-arcxp.yml'
+  - remote: 'https://github.com/code-store-platform/deploy-action/raw/main/gitlab-templates.yml'
 
 deploy_to_arcxp:
   extends: .deploy_to_arcxp
+  before_script:
+    - npm ci && npm run build  # Build your own project
   variables:
     ARC_XP_ORG_ID: $ARC_XP_ORG_ID
     ARC_XP_API_KEY: $ARC_XP_API_KEY
     ARC_XP_API_HOSTNAME: $ARC_XP_API_HOSTNAME
     BUNDLE_PREFIX: "my-bundle"
 ```
+
+The template will automatically clone `deploy-action` if it's not already present (e.g., from a submodule). Your `before_script` should build your own project artifacts (e.g., `dist/fusion-bundle.zip`).
 
 ## Configuration
 
@@ -68,10 +72,11 @@ build:
       - dist/fusion-bundle.zip
 
 include:
-  - remote: 'https://github.com/code-store-platform/deploy-action/raw/main/.gitlab/ci/deploy-arcxp.yml'
+  - remote: 'https://github.com/code-store-platform/deploy-action/raw/main/gitlab-templates.yml'
 
 deploy_to_arcxp:
   extends: .deploy_to_arcxp
+  stage: deploy
   needs: ["build"]
   variables:
     ARC_XP_ORG_ID: $ARC_XP_ORG_ID
