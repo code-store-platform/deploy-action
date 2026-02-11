@@ -1,0 +1,71 @@
+variables:
+  FUSION_RELEASE: "6.1.1"
+
+stages:
+  - build
+  - deploy
+
+include:
+  - local: .gitlab/ci/deploy-arcxp.yml
+
+build:
+  stage: build
+  image: node:20
+  only:
+    - dev
+    - tags
+  cache:
+    paths:
+      - node_modules/
+    key: ${CI_COMMIT_REF_SLUG}
+  before_script:
+    - echo "@wpmedia:registry=https://npm.pkg.github.com/" > .npmrc
+    - echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" >> .npmrc
+  script:
+    - npm install
+    - echo "FUSION_RELEASE=${FUSION_RELEASE}" > .env
+    - |
+      if [[ "${CI_COMMIT_TAG}" != "" ]]; then
+        node zip.js --action --prod
+      else
+        node zip.js --action
+      fi
+  artifacts:
+    paths:
+      - dist/fusion-bundle.zip
+      - node_modules/
+    expire_in: 1 hour
+
+deploy_sandbox:
+  extends: .deploy_to_arcxp
+  stage: deploy
+  only:
+    - dev
+  needs:
+    - build
+  variables:
+    ARC_XP_ORG_ID: $DEV_ORG_ID
+    ARC_XP_API_KEY: $DEV_ARC_ACCESS_TOKEN
+    ARC_XP_API_HOSTNAME: $DEV_ORG_ENV_DOMAIN
+    BUNDLE_PREFIX: "bundle"
+    RETRY_COUNT: "20"
+    RETRY_DELAY: "30"
+    PROMOTE: "true"
+    PAGEBUILDER_VERSION: $FUSION_RELEASE
+
+deploy_production:
+  extends: .deploy_to_arcxp
+  stage: deploy
+  only:
+    - tags
+  needs:
+    - build
+  variables:
+    ARC_XP_ORG_ID: $PROD_ORG_ID
+    ARC_XP_API_KEY: $PROD_ARC_ACCESS_TOKEN
+    ARC_XP_API_HOSTNAME: $PROD_ORG_ENV_DOMAIN
+    BUNDLE_PREFIX: "bundle-${CI_COMMIT_TAG//./-}"
+    RETRY_COUNT: "20"
+    RETRY_DELAY: "30"
+    PROMOTE: "false"
+    PAGEBUILDER_VERSION: $FUSION_RELEASE

@@ -1,0 +1,96 @@
+trigger:
+  branches:
+    include:
+      - dev
+      - main
+  tags:
+    include:
+      - '*'
+
+pr: []
+
+variables:
+  FUSION_RELEASE: 6.1.1
+
+stages:
+  - stage: Build
+    displayName: 'Build and Deploy'
+    jobs:
+      - job: DeployJob
+        displayName: 'Build and Deploy Bundle'
+        pool:
+          vmImage: 'ubuntu-latest'
+
+        variables:
+          BUNDLE_PREFIX: 'bundle'
+
+        steps:
+          - checkout: self
+            displayName: 'Checkout the code'
+
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20'
+            displayName: 'Set up Node'
+
+          - task: Cache@2
+            inputs:
+              key: 'node-modules-$(Build.SourcesDirectory)/package-lock.json'
+              path: '$(System.DefaultWorkingDirectory)/node_modules'
+              cacheHitVar: 'CACHE_RESTORED'
+            displayName: 'Cache npm modules'
+
+          - script: |
+              echo "@wpmedia:registry=https://npm.pkg.github.com/" > .npmrc
+              echo "//npm.pkg.github.com/:_authToken=$(NPM_TOKEN)" >> .npmrc
+            displayName: 'Configure .npmrc'
+            env:
+              NPM_TOKEN: $(NPM_TOKEN)
+
+          - script: npm install
+            displayName: 'Install dependencies'
+
+          - script: |
+              echo "FUSION_RELEASE=$(FUSION_RELEASE)" > .env
+            displayName: 'Create .env for build'
+
+          - script: |
+              if [[ "$(Build.SourceBranch)" == refs/tags/* ]]; then
+                node zip.js --action --prod
+              else
+                node zip.js --action
+              fi
+            displayName: 'Build bundle'
+
+          - script: |
+              TAG_NAME=$(Build.SourceBranchName)
+              BUNDLE_PREFIX="bundle-${TAG_NAME//./-}"
+              echo "##vso[task.setvariable variable=BUNDLE_PREFIX]$BUNDLE_PREFIX"
+            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+            displayName: 'Set bundle prefix for tags'
+
+          - script: node ./deploy-action/dist/index.cjs
+            condition: eq(variables['Build.SourceBranch'], 'refs/heads/dev')
+            env:
+              INPUT_ORG_ID: $(DEV_ORG_ID)
+              INPUT_API_KEY: $(DEV_ARC_ACCESS_TOKEN)
+              INPUT_API_HOSTNAME: $(DEV_ORG_ENV_DOMAIN)
+              INPUT_BUNDLE_PREFIX: 'bundle'
+              INPUT_RETRY_DELAY: '30'
+              INPUT_RETRY_COUNT: '20'
+              INPUT_PROMOTE: 'true'
+              INPUT_PAGEBUILDER_VERSION: $(FUSION_RELEASE)
+            displayName: 'Deploy to sandbox (dev)'
+
+          - script: node ./deploy-action/dist/index.cjs
+            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
+            env:
+              INPUT_ORG_ID: $(PROD_ORG_ID)
+              INPUT_API_KEY: $(PROD_ARC_ACCESS_TOKEN)
+              INPUT_API_HOSTNAME: $(PROD_ORG_ENV_DOMAIN)
+              INPUT_BUNDLE_PREFIX: $(BUNDLE_PREFIX)
+              INPUT_RETRY_DELAY: '30'
+              INPUT_RETRY_COUNT: '20'
+              INPUT_PROMOTE: 'false'
+              INPUT_PAGEBUILDER_VERSION: $(FUSION_RELEASE)
+            displayName: 'Deploy to production (tags)'

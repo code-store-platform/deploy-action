@@ -9,7 +9,7 @@ A **Git submodule** allows you to include an external Git repository as a subdir
 - Reusing code without duplicating it
 - Maintaining a single source of truth
 
-In this case, we use a submodule to include the `deploy-action` repository in your project, giving you access to the `azure-task.json` definition.
+In this case, we use a submodule to include the `deploy-action` repository in your project, giving you access to the built deployment script.
 
 ## Setup: Adding as a Submodule
 
@@ -38,7 +38,7 @@ Or during initial clone:
 git clone --recurse-submodules <your-repo-url>
 ```
 
-## Using the Azure Task
+## Using the Deploy Script
 
 Add the following to your `azure-pipelines.yml`:
 
@@ -67,37 +67,38 @@ stages:
     jobs:
       - job: DeployJob
         steps:
-          - task: deploy-action/azure-task.json@2
-            inputs:
-              orgId: $(ARC_XP_ORG_ID)
-              apiKey: $(ARC_XP_API_KEY)
-              apiHostname: $(ARC_XP_API_HOSTNAME)
-              bundlePrefix: 'my-bundle'
-              artifact: 'dist/fusion-bundle.zip'
+          - script: node ./deploy-action/dist/index.cjs
+            displayName: 'Deploy to Arc XP'
+            env:
+              INPUT_ORG_ID: $(ARC_XP_ORG_ID)
+              INPUT_API_KEY: $(ARC_XP_API_KEY)
+              INPUT_API_HOSTNAME: $(ARC_XP_API_HOSTNAME)
+              INPUT_BUNDLE_PREFIX: 'my-bundle'
+              INPUT_ARTIFACT: 'dist/fusion-bundle.zip'
 ```
 
 ## Configuration
 
-The task accepts the following inputs:
+The script accepts inputs via environment variables with the `INPUT_` prefix:
 
-### Required Inputs
+### Required Variables
 
-- **orgId** - The Arc XP organization ID
-- **apiKey** - The Arc XP API key (use Azure Pipelines secrets)
-- **apiHostname** - The Arc XP API hostname (e.g., `api.sandbox.org.arcpublishing.com`)
-- **bundlePrefix** - The prefix for the bundle name used to identify it in Arc XP UI
+- **INPUT_ORG_ID** - The Arc XP organization ID
+- **INPUT_API_KEY** - The Arc XP API key (use Azure Pipelines secrets)
+- **INPUT_API_HOSTNAME** - The Arc XP API hostname (e.g., `api.sandbox.org.arcpublishing.com`)
+- **INPUT_BUNDLE_PREFIX** - The prefix for the bundle name used to identify it in Arc XP UI
 
-### Optional Inputs
+### Optional Variables
 
-- **pagebuilderVersion** - The PageBuilder version to deploy with (default: `latest`)
-- **artifact** - Path to the artifact to upload (default: `dist/fusion-bundle.zip`)
-- **retryCount** - Number of retry attempts on failure (default: `10`)
-- **retryDelay** - Seconds to wait between retries (default: `5`)
-- **minimumRunningVersions** - Minimum number of versions to keep deployed (default: `7`, max: `10`)
-- **terminateRetryCount** - Times to retry terminating oldest build if it fails (default: `3`)
-- **terminateRetryDelay** - Seconds between termination retries (default: `10`)
-- **deploy** - Whether to deploy the bundle (default: `true`)
-- **promote** - Whether to promote the deployed version (default: `true`)
+- **INPUT_PAGEBUILDER_VERSION** - The PageBuilder version to deploy with (default: `latest`)
+- **INPUT_ARTIFACT** - Path to the artifact to upload (default: `dist/fusion-bundle.zip`)
+- **INPUT_RETRY_COUNT** - Number of retry attempts on failure (default: `10`)
+- **INPUT_RETRY_DELAY** - Seconds to wait between retries (default: `5`)
+- **INPUT_MINIMUM_RUNNING_VERSIONS** - Minimum number of versions to keep deployed (default: `7`, max: `10`)
+- **INPUT_TERMINATE_RETRY_COUNT** - Times to retry terminating oldest build if it fails (default: `3`)
+- **INPUT_TERMINATE_RETRY_DELAY** - Seconds between termination retries (default: `10`)
+- **INPUT_DEPLOY** - Whether to deploy the bundle (default: `true`)
+- **INPUT_PROMOTE** - Whether to promote the deployed version (default: `true`)
 
 ## Setting Up Variables in Azure Pipelines
 
@@ -160,17 +161,26 @@ stages:
       - job: DeployJob
         displayName: 'Deploy'
         steps:
-          - task: deploy-action/azure-task.json@2
+          - checkout: self
+            fetchDepth: 0
+            submodules: recursive
+
+          - task: NodeTool@0
             inputs:
-              orgId: $(ARC_XP_ORG_ID)
-              apiKey: $(ARC_XP_API_KEY)
-              apiHostname: $(ARC_XP_API_HOSTNAME)
-              bundlePrefix: 'my-bundle'
-              pagebuilderVersion: 'latest'
-              artifact: 'dist/fusion-bundle.zip'
-              retryCount: '10'
-              minimumRunningVersions: '7'
+              versionSpec: '20.x'
+            displayName: 'Install Node.js'
+
+          - script: node ./deploy-action/dist/index.cjs
             displayName: 'Deploy PageBuilder bundle'
+            env:
+              INPUT_ORG_ID: $(ARC_XP_ORG_ID)
+              INPUT_API_KEY: $(ARC_XP_API_KEY)
+              INPUT_API_HOSTNAME: $(ARC_XP_API_HOSTNAME)
+              INPUT_BUNDLE_PREFIX: 'my-bundle'
+              INPUT_PAGEBUILDER_VERSION: 'latest'
+              INPUT_ARTIFACT: 'dist/fusion-bundle.zip'
+              INPUT_RETRY_COUNT: '10'
+              INPUT_MINIMUM_RUNNING_VERSIONS: '7'
 ```
 
 ## Managing Submodules
