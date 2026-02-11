@@ -1,0 +1,79 @@
+on:
+  push:
+    branches:
+      - dev
+    tags:
+      - '*'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      FUSION_RELEASE: 6.1.1
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('package-lock.json') }}
+
+      - name: Configure .npmrc
+        run: |
+          echo "@wpmedia:registry=https://npm.pkg.github.com/" > .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${NPM_TOKEN}" >> .npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Install dependencies
+        run: |
+          npm install
+
+      - name: Create .env for build
+        run: |
+          echo "FUSION_RELEASE=${FUSION_RELEASE}" > .env
+
+      - name: Build bundle
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            node zip.js --action --prod
+          else
+            node zip.js --action
+          fi
+
+      - name: Set bundle prefix (tags)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: echo "BUNDLE_PREFIX=bundle-${GITHUB_REF_NAME//./-}" >> $GITHUB_ENV
+
+      - name: Deploy to sandbox (dev)
+        if: github.ref == 'refs/heads/dev'
+        uses: code-store-platform/deploy-action@v2
+        with:
+          org-id: ${{ secrets.DEV_ORG_ID }}
+          api-key: ${{ secrets.DEV_ARC_ACCESS_TOKEN }}
+          api-hostname: ${{ secrets.DEV_ORG_ENV_DOMAIN }}
+          bundle-prefix: bundle
+          retry-delay: 30
+          retry-count: 20
+          promote: true
+          pagebuilder-version: ${{ env.FUSION_RELEASE }}
+
+      - name: Deploy to production (tags)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: code-store-platform/deploy-action@v2
+        with:
+          org-id: ${{ secrets.PROD_ORG_ID }}
+          api-key: ${{ secrets.PROD_ARC_ACCESS_TOKEN }}
+          api-hostname: ${{ secrets.PROD_ORG_ENV_DOMAIN }}
+          bundle-prefix: ${{ env.BUNDLE_PREFIX }}
+          retry-delay: 30
+          retry-count: 20
+          promote: false
+          pagebuilder-version: ${{ env.FUSION_RELEASE }}
