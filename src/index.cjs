@@ -1,6 +1,4 @@
-const core = require('@actions/core')
-const github = require('@actions/github')
-const { HttpClient } = require('@actions/http-client')
+const { createProvider } = require('./providers')
 
 const { getCurrentVersions } = require('./phases/current-versions.cjs')
 const { uploadArtifact } = require('./phases/upload.cjs')
@@ -13,27 +11,8 @@ const {
   verifyPageBuilderVersion,
 } = require('./validation.cjs')
 
-const runContext = {
-  context: github.context,
-  orgId: core.getInput('org-id'),
-  apiKey: core.getInput('api-key'),
-  apiHostname: core.getInput('api-hostname'),
-  bundlePrefix: core.getInput('bundle-prefix'),
-  pagebuilderVersion: core.getInput('pagebuilder-version'),
-  artifact: core.getInput('artifact'),
-  retryCount: core.getInput('retry-count'),
-  retryDelay: core.getInput('retry-delay'),
-  minimumRunningVersions: core.getInput('minimum-running-versions'),
-  terminateRetryCount: core.getInput('terminate-retry-count'),
-  terminateRetryDelay: core.getInput('terminate-retry-delay'),
-  shouldDeploy: ['true', true].includes(core.getInput('deploy')),
-  shouldPromote: ['true', true].includes(core.getInput('promote')),
-  client: new HttpClient('nodejs - GitHub Actions - arcxp/deploy-action', [], {
-    headers: { Authorization: `Bearer ${core.getInput('api-key')}` },
-  }),
-
-  core,
-}
+const provider = createProvider()
+const runContext = provider.createRunContext()
 
 runContext.bundleName = [
   runContext.bundlePrefix ?? 'bundle',
@@ -52,14 +31,14 @@ const main = async () => {
   verifyPageBuilderVersion(runContext)
 
   if (runContext.shouldDeploy === false && runContext.shouldPromote === true) {
-    return core.setFailed('If `promote` is true, `deploy` must also be true.')
+    return runContext.core.setFailed('If `promote` is true, `deploy` must also be true.')
   }
 
   const currentVersions = await getCurrentVersions(runContext)
-  core.debug('currentVersions', JSON.stringify(currentVersions, undefined, 2))
+  runContext.core.debug('currentVersions', JSON.stringify(currentVersions, undefined, 2))
 
   if (!Array.isArray(currentVersions) || !currentVersions.length) {
-    return core.setFailed('Unable to determine current versions.')
+    return runContext.core.setFailed('Unable to determine current versions.')
   }
 
   const oldestVersion = currentVersions[0]
@@ -73,7 +52,7 @@ const main = async () => {
     // Don't terminate if there aren't more versions than one.
     if (currentVersions.length > runContext.minimumRunningVersions) {
       const termResults = terminateOldestVersion(runContext, oldestVersion)
-      core.debug(
+      runContext.core.debug(
         'terminateOldestVersionResults',
         JSON.stringify(termResults, undefined, 2),
       )
@@ -85,7 +64,7 @@ const main = async () => {
     // Wait for the internal deployer to do its thing.
     while (retriesRemaining >= 0) {
       const newVersions = await getCurrentVersions(runContext)
-      core.debug(`New versions: ${JSON.stringify(newVersions, undefined, 2)}`)
+      runContext.core.debug(`New versions: ${JSON.stringify(newVersions, undefined, 2)}`)
       if (!!newVersions && newVersions[newVersions.length - 1] !== latestVersion) {
         newestVersion = newVersions[newVersions.length - 1]
         break
@@ -96,7 +75,7 @@ const main = async () => {
 
     // If we didn't identify the new version, that means we timed out. Boo.
     if (!newestVersion) {
-      return core.setFailed(
+      return runContext.core.setFailed(
         `We retried ${runContext.retryCount} times with ${runContext.retryDelay} seconds between retries. Unfortunately, the new version does not appear to have deployed successfully. Please check logs, and contact support if this problem continues.\n\nYou may wish to retry this action again, but with debugging enabled.`,
       )
     }
@@ -108,4 +87,4 @@ const main = async () => {
   }
 }
 
-main().finally(() => core.debug('Finished.'))
+main().finally(() => runContext.core.debug('Finished.'))

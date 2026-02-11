@@ -1,0 +1,117 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+  "id": "a5e8b3f7-2e1c-4d9a-b6f3-c8e2a1d4f9b5",
+  "name": "ArcXPDeploy",
+  "friendlyName": "Deploy to Arc XP",
+  "description": "Deploy PageBuilder bundles to Arc XP",
+  "helpMarkDown": "See [GitHub repository](https://github.com/code-store-platform/deploy-action)",
+  "category": "Deploy",
+  "visibility": ["Build", "Release"],
+  "author": "Arc XP",
+  "version": {
+    "Major": 2,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "demands": ["node.js"],
+  "minimumAgentVersion": "2.187.0",
+  "instanceNameFormat": "Deploy $(bundlePrefix) to Arc XP",
+  "inputs": [
+    {
+      "name": "orgId",
+      "type": "string",
+      "label": "Organization ID",
+      "required": true,
+      "helpMarkDown": "Arc XP organization ID"
+    },
+    {
+      "name": "apiKey",
+      "type": "string",
+      "label": "API Key",
+      "required": true,
+      "helpMarkDown": "Arc XP API key (use secret variable)"
+    },
+    {
+      "name": "apiHostname",
+      "type": "string",
+      "label": "API Hostname",
+      "required": true,
+      "helpMarkDown": "Arc XP API hostname (e.g., api.sandbox.org.arcpublishing.com)"
+    },
+    {
+      "name": "bundlePrefix",
+      "type": "string",
+      "label": "Bundle Prefix",
+      "required": true,
+      "helpMarkDown": "Bundle name prefix for Arc XP UI"
+    },
+    {
+      "name": "pagebuilderVersion",
+      "type": "string",
+      "label": "PageBuilder Version",
+      "defaultValue": "latest",
+      "required": false
+    },
+    {
+      "name": "artifact",
+      "type": "filePath",
+      "label": "Artifact Path",
+      "defaultValue": "dist/fusion-bundle.zip",
+      "required": false
+    },
+    {
+      "name": "retryCount",
+      "type": "string",
+      "label": "Retry Count",
+      "defaultValue": "10",
+      "required": false
+    },
+    {
+      "name": "retryDelay",
+      "type": "string",
+      "label": "Retry Delay (seconds)",
+      "defaultValue": "5",
+      "required": false
+    },
+    {
+      "name": "minimumRunningVersions",
+      "type": "string",
+      "label": "Minimum Running Versions",
+      "defaultValue": "7",
+      "required": false
+    },
+    {
+      "name": "terminateRetryCount",
+      "type": "string",
+      "label": "Terminate Retry Count",
+      "defaultValue": "3",
+      "required": false
+    },
+    {
+      "name": "terminateRetryDelay",
+      "type": "string",
+      "label": "Terminate Retry Delay (seconds)",
+      "defaultValue": "10",
+      "required": false
+    },
+    {
+      "name": "deploy",
+      "type": "boolean",
+      "label": "Deploy",
+      "defaultValue": "true",
+      "required": false
+    },
+    {
+      "name": "promote",
+      "type": "boolean",
+      "label": "Promote",
+      "defaultValue": "true",
+      "required": false
+    }
+  ],
+  "execution": {
+    "Node20_1": {
+      "target": "dist/index.cjs"
+    }
+  }
+}
