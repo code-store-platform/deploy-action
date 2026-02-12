@@ -6,7 +6,7 @@ stages:
   - deploy
 
 include:
-  - local: .gitlab/ci/deploy-arcxp.yml
+  - remote: 'https://github.com/code-store-platform/deploy-action/raw/main/gitlab-templates.yml'
 
 build:
   stage: build

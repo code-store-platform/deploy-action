@@ -14,15 +14,12 @@ variables:
 
 stages:
   - stage: Build
-    displayName: 'Build and Deploy'
+    displayName: 'Build'
     jobs:
-      - job: DeployJob
-        displayName: 'Build and Deploy Bundle'
+      - job: BuildJob
+        displayName: 'Build Bundle'
         pool:
           vmImage: 'ubuntu-latest'
-
-        variables:
-          BUNDLE_PREFIX: 'bundle'
 
         steps:
           - checkout: self
@@ -32,13 +29,6 @@ stages:
             inputs:
               versionSpec: '20'
             displayName: 'Set up Node'
-
-          - task: Cache@2
-            inputs:
-              key: 'node-modules-$(Build.SourcesDirectory)/package-lock.json'
-              path: '$(System.DefaultWorkingDirectory)/node_modules'
-              cacheHitVar: 'CACHE_RESTORED'
-            displayName: 'Cache npm modules'
 
           - script: |
               echo "@wpmedia:registry=https://npm.pkg.github.com/" > .npmrc
@@ -62,35 +52,61 @@ stages:
               fi
             displayName: 'Build bundle'
 
+  - stage: DeployDev
+    displayName: 'Deploy to Dev'
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
+    jobs:
+      - job: CheckoutAndClone
+        displayName: 'Deploy to Sandbox'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+          - script: |
+              if [ ! -d "deploy-action" ]; then
+                git clone https://github.com/code-store-platform/deploy-action.git deploy-action
+              fi
+            displayName: 'Clone deploy-action'
+          - template: deploy-action/azure-templates.yml
+            parameters:
+              orgId: $(DEV_ORG_ID)
+              apiKey: $(DEV_ARC_ACCESS_TOKEN)
+              apiHostname: $(DEV_ORG_ENV_DOMAIN)
+              bundlePrefix: bundle
+              retryDelay: '30'
+              retryCount: '20'
+              promote: true
+              pagebuilderVersion: $(FUSION_RELEASE)
+
+  - stage: DeployProd
+    displayName: 'Deploy to Production'
+    dependsOn: Build
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    jobs:
+      - job: CheckoutAndClone
+        displayName: 'Deploy to Production'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+          - script: |
+              if [ ! -d "deploy-action" ]; then
+                git clone https://github.com/code-store-platform/deploy-action.git deploy-action
+              fi
+            displayName: 'Clone deploy-action'
           - script: |
               TAG_NAME=$(Build.SourceBranchName)
               BUNDLE_PREFIX="bundle-${TAG_NAME//./-}"
               echo "##vso[task.setvariable variable=BUNDLE_PREFIX]$BUNDLE_PREFIX"
-            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
             displayName: 'Set bundle prefix for tags'
-
-          - script: node ./deploy-action/dist/index.cjs
-            condition: eq(variables['Build.SourceBranch'], 'refs/heads/dev')
-            env:
-              INPUT_ORG_ID: $(DEV_ORG_ID)
-              INPUT_API_KEY: $(DEV_ARC_ACCESS_TOKEN)
-              INPUT_API_HOSTNAME: $(DEV_ORG_ENV_DOMAIN)
-              INPUT_BUNDLE_PREFIX: 'bundle'
-              INPUT_RETRY_DELAY: '30'
-              INPUT_RETRY_COUNT: '20'
-              INPUT_PROMOTE: 'true'
-              INPUT_PAGEBUILDER_VERSION: $(FUSION_RELEASE)
-            displayName: 'Deploy to sandbox (dev)'
-
-          - script: node ./deploy-action/dist/index.cjs
-            condition: startsWith(variables['Build.SourceBranch'], 'refs/tags/')
-            env:
-              INPUT_ORG_ID: $(PROD_ORG_ID)
-              INPUT_API_KEY: $(PROD_ARC_ACCESS_TOKEN)
-              INPUT_API_HOSTNAME: $(PROD_ORG_ENV_DOMAIN)
-              INPUT_BUNDLE_PREFIX: $(BUNDLE_PREFIX)
-              INPUT_RETRY_DELAY: '30'
-              INPUT_RETRY_COUNT: '20'
-              INPUT_PROMOTE: 'false'
-              INPUT_PAGEBUILDER_VERSION: $(FUSION_RELEASE)
-            displayName: 'Deploy to production (tags)'
+          - template: deploy-action/azure-templates.yml
+            parameters:
+              orgId: $(PROD_ORG_ID)
+              apiKey: $(PROD_ARC_ACCESS_TOKEN)
+              apiHostname: $(PROD_ORG_ENV_DOMAIN)
+              bundlePrefix: $(BUNDLE_PREFIX)
+              retryDelay: '30'
+              retryCount: '20'
+              promote: false
+              pagebuilderVersion: $(FUSION_RELEASE)
