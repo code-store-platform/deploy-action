@@ -23867,9 +23867,9 @@ var require_brace_expansion = __commonJS({
   }
 });
 
-// node_modules/minimatch/minimatch.js
+// node_modules/azure-pipelines-task-lib/node_modules/glob/node_modules/minimatch/minimatch.js
 var require_minimatch = __commonJS({
-  "node_modules/minimatch/minimatch.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/glob/node_modules/minimatch/minimatch.js"(exports2, module2) {
     module2.exports = minimatch;
     minimatch.Minimatch = Minimatch;
     var path = (function() {
@@ -24506,9 +24506,9 @@ var require_path_is_absolute = __commonJS({
   }
 });
 
-// node_modules/shelljs/node_modules/glob/common.js
+// node_modules/azure-pipelines-task-lib/node_modules/glob/common.js
 var require_common = __commonJS({
-  "node_modules/shelljs/node_modules/glob/common.js"(exports2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/glob/common.js"(exports2) {
     exports2.setopts = setopts;
     exports2.ownProp = ownProp;
     exports2.makeAbs = makeAbs;
@@ -24700,9 +24700,9 @@ var require_common = __commonJS({
   }
 });
 
-// node_modules/shelljs/node_modules/glob/sync.js
+// node_modules/azure-pipelines-task-lib/node_modules/glob/sync.js
 var require_sync = __commonJS({
-  "node_modules/shelljs/node_modules/glob/sync.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/glob/sync.js"(exports2, module2) {
     module2.exports = globSync;
     globSync.GlobSync = GlobSync;
     var rp = require_fs();
@@ -25101,9 +25101,9 @@ var require_inflight = __commonJS({
   }
 });
 
-// node_modules/shelljs/node_modules/glob/glob.js
+// node_modules/azure-pipelines-task-lib/node_modules/glob/glob.js
 var require_glob = __commonJS({
-  "node_modules/shelljs/node_modules/glob/glob.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/glob/glob.js"(exports2, module2) {
     module2.exports = glob;
     var rp = require_fs();
     var minimatch = require_minimatch();
@@ -25657,9 +25657,9 @@ var require_glob = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/common.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/common.js
 var require_common2 = __commonJS({
-  "node_modules/shelljs/src/common.js"(exports2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/common.js"(exports2) {
     "use strict";
     var os = require("os");
     var fs = require("fs");
@@ -25993,9 +25993,9 @@ var require_common2 = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/cat.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/cat.js
 var require_cat = __commonJS({
-  "node_modules/shelljs/src/cat.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/cat.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     common.register("cat", _cat, {
@@ -26041,9 +26041,9 @@ var require_cat = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/cd.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/cd.js
 var require_cd = __commonJS({
-  "node_modules/shelljs/src/cd.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/cd.js"(exports2, module2) {
     var os = require("os");
     var common = require_common2();
     common.register("cd", _cd, {});
@@ -26076,9 +26076,9 @@ var require_cd = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/chmod.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/chmod.js
 var require_chmod = __commonJS({
-  "node_modules/shelljs/src/chmod.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/chmod.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     var path = require("path");
@@ -26226,9 +26226,9 @@ var require_chmod = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/cp.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/cp.js
 var require_cp = __commonJS({
-  "node_modules/shelljs/src/cp.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/cp.js"(exports2, module2) {
     var fs = require("fs");
     var path = require("path");
     var common = require_common2();
@@ -26431,9 +26431,9 @@ var require_cp = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/dirs.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/dirs.js
 var require_dirs = __commonJS({
-  "node_modules/shelljs/src/dirs.js"(exports2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/dirs.js"(exports2) {
     var common = require_common2();
     var _cd = require_cd();
     var path = require("path");
@@ -26557,9 +26557,9 @@ var require_dirs = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/echo.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/echo.js
 var require_echo = __commonJS({
-  "node_modules/shelljs/src/echo.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/echo.js"(exports2, module2) {
     var format = require("util").format;
     var common = require_common2();
     common.register("echo", _echo, {
@@ -26592,9 +26592,9 @@ var require_echo = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/error.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/error.js
 var require_error = __commonJS({
-  "node_modules/shelljs/src/error.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/error.js"(exports2, module2) {
     var common = require_common2();
     function error() {
       return common.state.error;
@@ -26603,9 +26603,9 @@ var require_error = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/exec-child.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/exec-child.js
 var require_exec_child = __commonJS({
-  "node_modules/shelljs/src/exec-child.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/exec-child.js"(exports2, module2) {
     if (require.main !== module2) {
       throw new Error("This file should not be required");
     }
@@ -26640,9 +26640,9 @@ var require_exec_child = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/tempdir.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/tempdir.js
 var require_tempdir = __commonJS({
-  "node_modules/shelljs/src/tempdir.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/tempdir.js"(exports2, module2) {
     var common = require_common2();
     var os = require("os");
     var fs = require("fs");
@@ -26685,9 +26685,9 @@ var require_tempdir = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/pwd.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/pwd.js
 var require_pwd = __commonJS({
-  "node_modules/shelljs/src/pwd.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/pwd.js"(exports2, module2) {
     var path = require("path");
     var common = require_common2();
     common.register("pwd", _pwd, {
@@ -26701,9 +26701,9 @@ var require_pwd = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/exec.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/exec.js
 var require_exec2 = __commonJS({
-  "node_modules/shelljs/src/exec.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/exec.js"(exports2, module2) {
     var common = require_common2();
     var _tempDir = require_tempdir().tempDir;
     var _pwd = require_pwd();
@@ -26846,9 +26846,9 @@ var require_exec2 = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/ls.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/ls.js
 var require_ls = __commonJS({
-  "node_modules/shelljs/src/ls.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/ls.js"(exports2, module2) {
     var path = require("path");
     var fs = require("fs");
     var common = require_common2();
@@ -26938,9 +26938,9 @@ var require_ls = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/find.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/find.js
 var require_find = __commonJS({
-  "node_modules/shelljs/src/find.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/find.js"(exports2, module2) {
     var path = require("path");
     var common = require_common2();
     var _ls = require_ls();
@@ -26978,9 +26978,9 @@ var require_find = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/grep.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/grep.js
 var require_grep = __commonJS({
-  "node_modules/shelljs/src/grep.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/grep.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     common.register("grep", _grep, {
@@ -27030,9 +27030,9 @@ var require_grep = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/head.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/head.js
 var require_head = __commonJS({
-  "node_modules/shelljs/src/head.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/head.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     common.register("head", _head, {
@@ -27112,9 +27112,9 @@ var require_head = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/ln.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/ln.js
 var require_ln = __commonJS({
-  "node_modules/shelljs/src/ln.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/ln.js"(exports2, module2) {
     var fs = require("fs");
     var path = require("path");
     var common = require_common2();
@@ -27168,9 +27168,9 @@ var require_ln = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/mkdir.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/mkdir.js
 var require_mkdir = __commonJS({
-  "node_modules/shelljs/src/mkdir.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/mkdir.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     var path = require("path");
@@ -27236,9 +27236,9 @@ var require_mkdir = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/rm.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/rm.js
 var require_rm = __commonJS({
-  "node_modules/shelljs/src/rm.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/rm.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     common.register("rm", _rm, {
@@ -27372,9 +27372,9 @@ var require_rm = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/mv.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/mv.js
 var require_mv = __commonJS({
-  "node_modules/shelljs/src/mv.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/mv.js"(exports2, module2) {
     var fs = require("fs");
     var path = require("path");
     var common = require_common2();
@@ -27450,21 +27450,21 @@ var require_mv = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/popd.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/popd.js
 var require_popd = __commonJS({
-  "node_modules/shelljs/src/popd.js"() {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/popd.js"() {
   }
 });
 
-// node_modules/shelljs/src/pushd.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/pushd.js
 var require_pushd = __commonJS({
-  "node_modules/shelljs/src/pushd.js"() {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/pushd.js"() {
   }
 });
 
-// node_modules/shelljs/src/sed.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/sed.js
 var require_sed = __commonJS({
-  "node_modules/shelljs/src/sed.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/sed.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     common.register("sed", _sed, {
@@ -27516,9 +27516,9 @@ var require_sed = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/set.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/set.js
 var require_set = __commonJS({
-  "node_modules/shelljs/src/set.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/set.js"(exports2, module2) {
     var common = require_common2();
     common.register("set", _set, {
       allowGlobbing: false,
@@ -27555,9 +27555,9 @@ var require_set = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/sort.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/sort.js
 var require_sort = __commonJS({
-  "node_modules/shelljs/src/sort.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/sort.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     common.register("sort", _sort, {
@@ -27620,9 +27620,9 @@ var require_sort = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/tail.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/tail.js
 var require_tail = __commonJS({
-  "node_modules/shelljs/src/tail.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/tail.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     common.register("tail", _tail, {
@@ -27679,9 +27679,9 @@ var require_tail = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/test.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/test.js
 var require_test = __commonJS({
-  "node_modules/shelljs/src/test.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/test.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     common.register("test", _test, {
@@ -27729,9 +27729,9 @@ var require_test = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/to.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/to.js
 var require_to = __commonJS({
-  "node_modules/shelljs/src/to.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/to.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     var path = require("path");
@@ -27755,9 +27755,9 @@ var require_to = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/toEnd.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/toEnd.js
 var require_toEnd = __commonJS({
-  "node_modules/shelljs/src/toEnd.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/toEnd.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     var path = require("path");
@@ -27781,9 +27781,9 @@ var require_toEnd = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/touch.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/touch.js
 var require_touch = __commonJS({
-  "node_modules/shelljs/src/touch.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/touch.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     common.register("touch", _touch, {
@@ -27850,9 +27850,9 @@ var require_touch = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/uniq.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/uniq.js
 var require_uniq = __commonJS({
-  "node_modules/shelljs/src/uniq.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/uniq.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     function lpad(c, str) {
@@ -27911,9 +27911,9 @@ var require_uniq = __commonJS({
   }
 });
 
-// node_modules/shelljs/src/which.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/which.js
 var require_which = __commonJS({
-  "node_modules/shelljs/src/which.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/src/which.js"(exports2, module2) {
     var common = require_common2();
     var fs = require("fs");
     var path = require("path");
@@ -27988,10 +27988,10 @@ var require_which = __commonJS({
   }
 });
 
-// require("./src/**/*") in node_modules/shelljs/shell.js
+// require("./src/**/*") in node_modules/azure-pipelines-task-lib/node_modules/shelljs/shell.js
 var globRequire_src;
 var init_ = __esm({
-  'require("./src/**/*") in node_modules/shelljs/shell.js'() {
+  'require("./src/**/*") in node_modules/azure-pipelines-task-lib/node_modules/shelljs/shell.js'() {
     globRequire_src = __glob({
       "./src/cat.js": () => require_cat(),
       "./src/cd.js": () => require_cd(),
@@ -28029,9 +28029,9 @@ var init_ = __esm({
   }
 });
 
-// node_modules/shelljs/commands.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/commands.js
 var require_commands = __commonJS({
-  "node_modules/shelljs/commands.js"(exports2, module2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/commands.js"(exports2, module2) {
     module2.exports = [
       "cat",
       "cd",
@@ -28064,9 +28064,9 @@ var require_commands = __commonJS({
   }
 });
 
-// node_modules/shelljs/shell.js
+// node_modules/azure-pipelines-task-lib/node_modules/shelljs/shell.js
 var require_shell = __commonJS({
-  "node_modules/shelljs/shell.js"(exports2) {
+  "node_modules/azure-pipelines-task-lib/node_modules/shelljs/shell.js"(exports2) {
     init_();
     var common = require_common2();
     require_commands().forEach(function(command) {
