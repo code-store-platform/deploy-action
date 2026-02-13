@@ -46,7 +46,7 @@ stages:
 ```
 
 The template will:
-1. Download the latest deployment script from GitHub (feature/azure-provider branch)
+1. Download the latest deployment script from GitHub (v2)
 2. Set up the required environment variables
 3. Run the deployment
 
@@ -142,7 +142,7 @@ stages:
 ## How It Works
 
 The template:
-1. **Downloads** the latest deployment script from GitHub (branch: `feature/azure-provider`)
+1. **Downloads** the latest deployment script from GitHub (release: `v2`)
 2. **Exports** all parameters as `INPUT_*` environment variables
 3. **Executes** the Node.js script with those environment variables
 

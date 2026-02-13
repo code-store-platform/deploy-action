@@ -60,7 +60,7 @@ parameters:
 
 steps:
   - script: |
-      curl -L -o deploy.cjs https://raw.githubusercontent.com/code-store-platform/deploy-action/feature/azure-provider/dist/index.cjs
+      curl -L -o deploy.cjs https://raw.githubusercontent.com/code-store-platform/deploy-action/v2/dist/index.cjs
     displayName: 'Download deploy script'
     condition: ne(variables['Build.Reason'], 'PullRequest')
 
