@@ -1,10 +1,9 @@
-const tl = require('azure-pipelines-task-lib/task')
 const { HttpClient } = require('@actions/http-client')
 const { BaseProvider } = require('./base-provider.cjs')
 
 class AzureProvider extends BaseProvider {
   _getEnvInputKey(name) {
-    return 'INPUT_' + name.replace(/([a-z])([A-Z])/g, '$1_$2')  // camelCase to snake_case
+    return 'INPUT_' + name
       .replace(/([a-z])([A-Z])/g, '$1_$2')  // camelCase to snake_case
       .replace(/\./g, '_')
       .replace(/ /g, '_')
@@ -12,15 +11,17 @@ class AzureProvider extends BaseProvider {
   }
 
   _getFromEnv(name) {
-    return process.env[this._getEnvInputKey(name)];  
+    const key = this._getEnvInputKey(name);
+    return process.env[key];  
   }
 
   getInput(name) {
-    return tl.getInput(name, false) || this._getFromEnv(name)
+    return this._getFromEnv(name) 
   }
 
+
   debug(message) {
-    tl.debug(message)
+    console.log(`[DEBUG] ${message}`)
   }
 
   info(message) {
@@ -28,11 +29,12 @@ class AzureProvider extends BaseProvider {
   }
 
   warning(message) {
-    tl.warning(message)
+    console.warn(`[WARNING] ${message}`)
   }
 
   setFailed(message) {
-    tl.setResult(tl.TaskResult.Failed, message)
+    console.error(`[ERROR] ${message}`)
+    process.exit(1)
   }
 
   getContext() {

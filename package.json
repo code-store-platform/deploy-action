@@ -43,11 +43,7 @@
     "@actions/github": "^6.0.1",
     "@actions/http-client": "^2.2.3",
     "@octokit/rest": "^22.0.0",
-    "azure-pipelines-task-lib": "^4.0.0",
     "lodash": "^4.17.21",
     "to-readable-stream": "^4.0.0"
-  },
-  "overrides": {
-    "shelljs": "^0.10.0"
   }
 }
