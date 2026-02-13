@@ -10,7 +10,7 @@ trigger:
 pr: []
 
 variables:
-  FUSION_RELEASE: 6.1.1
+  FUSION_RELEASE: 7.0.2
 
 stages:
   - stage: Build
@@ -52,6 +52,13 @@ stages:
               fi
             displayName: 'Build bundle'
 
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: 'dist/fusion-bundle.zip'
+              artifact: 'fusion-bundle'
+              publishLocation: 'pipeline'
+            displayName: 'Publish bundle artifact'
+
   - stage: DeployDev
     displayName: 'Deploy to Dev'
     dependsOn: Build
@@ -63,12 +70,12 @@ stages:
           vmImage: 'ubuntu-latest'
         steps:
           - checkout: self
-          - script: |
-              if [ ! -d "deploy-action" ]; then
-                git clone https://github.com/code-store-platform/deploy-action.git deploy-action
-              fi
-            displayName: 'Clone deploy-action'
-          - template: deploy-action/azure-templates.yml
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifactName: 'fusion-bundle'
+              targetPath: 'dist/'
+            displayName: 'Download bundle'
+          - template: .azure/deploy-template.yml
             parameters:
               orgId: $(DEV_ORG_ID)
               apiKey: $(DEV_ARC_ACCESS_TOKEN)
@@ -77,6 +84,7 @@ stages:
               retryDelay: '30'
               retryCount: '20'
               promote: true
+              artifact: "./dist/fusion-bundle.zip"
               pagebuilderVersion: $(FUSION_RELEASE)
 
   - stage: DeployProd
@@ -90,17 +98,17 @@ stages:
           vmImage: 'ubuntu-latest'
         steps:
           - checkout: self
-          - script: |
-              if [ ! -d "deploy-action" ]; then
-                git clone https://github.com/code-store-platform/deploy-action.git deploy-action
-              fi
-            displayName: 'Clone deploy-action'
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifactName: 'fusion-bundle'
+              targetPath: 'dist/'
+            displayName: 'Download bundle'
           - script: |
               TAG_NAME=$(Build.SourceBranchName)
               BUNDLE_PREFIX="bundle-${TAG_NAME//./-}"
               echo "##vso[task.setvariable variable=BUNDLE_PREFIX]$BUNDLE_PREFIX"
             displayName: 'Set bundle prefix for tags'
-          - template: deploy-action/azure-templates.yml
+          - template: .azure/deploy-template.yml
             parameters:
               orgId: $(PROD_ORG_ID)
               apiKey: $(PROD_ARC_ACCESS_TOKEN)
@@ -109,4 +117,5 @@ stages:
               retryDelay: '30'
               retryCount: '20'
               promote: false
+              artifact: "./dist/fusion-bundle.zip"
               pagebuilderVersion: $(FUSION_RELEASE)

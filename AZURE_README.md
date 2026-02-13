@@ -2,49 +2,16 @@
 
 This document describes how to use the Arc XP deploy task in your Azure Pipelines.
 
-## What is a Git Submodule?
+## Quick Start
 
-A **Git submodule** allows you to include an external Git repository as a subdirectory in your own repository. This is useful for:
-- Keeping shared tools and libraries in a separate repository
-- Reusing code without duplicating it
-- Maintaining a single source of truth
-
-In this case, we use a submodule to include the `deploy-action` repository in your project, giving you access to the built deployment script.
-
-## Setup (Optional: Using as a Submodule)
-
-The template automatically clones the repository if needed, so submodules are optional. However, using a submodule can be beneficial for version control and consistency.
-
-### Add the submodule to your project
+Copy the template to your repository and reference it:
 
 ```bash
-git submodule add https://github.com/code-store-platform/deploy-action.git deploy-action
+mkdir -p .azure
+cp azure-templates.yml .azure/deploy-template.yml
 ```
 
-This will:
-- Clone the repository into a `deploy-action` directory
-- Create a `.gitmodules` file tracking the submodule
-- Commit the submodule reference to your repository
-
-### Update after cloning
-
-If you clone a repository that already has this submodule, run:
-
-```bash
-git submodule update --init --recursive
-```
-
-Or during initial clone:
-
-```bash
-git clone --recurse-submodules <your-repo-url>
-```
-
-## Using the Deploy Template
-
-The template automatically clones the `deploy-action` repository if it's not already present (e.g., from a submodule). You can use it with or without submodules.
-
-Add the following to your `azure-pipelines.yml`:
+Then add to your `azure-pipelines.yml`:
 
 ```yaml
 trigger:
@@ -63,15 +30,13 @@ stages:
               versionSpec: '20.x'
           - script: npm ci && npm run build
             displayName: 'Install and build'
-          - publish: $(Build.ArtifactStagingDirectory)
-            artifact: drop
 
   - stage: Deploy
     dependsOn: Build
     jobs:
       - job: DeployJob
         steps:
-          - template: deploy-action/azure-templates.yml
+          - template: .azure/deploy-template.yml
             parameters:
               orgId: $(ARC_XP_ORG_ID)
               apiKey: $(ARC_XP_API_KEY)
@@ -79,6 +44,11 @@ stages:
               bundlePrefix: 'my-bundle'
               artifact: 'dist/fusion-bundle.zip'
 ```
+
+The template will:
+1. Download the latest deployment script from GitHub (feature/azure-provider branch)
+2. Set up the required environment variables
+3. Run the deployment
 
 ## Configuration
 
@@ -127,7 +97,6 @@ trigger:
 
 variables:
   - group: arcxp-secrets
-  - buildConfiguration: 'Release'
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -150,12 +119,6 @@ stages:
           - script: npm run build
             displayName: 'Build bundle'
 
-          - task: PublishBuildArtifacts@1
-            inputs:
-              pathToPublish: 'dist/fusion-bundle.zip'
-              artifactName: 'bundle'
-            displayName: 'Publish artifact'
-
   - stage: Deploy
     displayName: 'Deploy to Arc XP'
     dependsOn: Build
@@ -164,10 +127,7 @@ stages:
       - job: DeployJob
         displayName: 'Deploy'
         steps:
-          - checkout: self
-            fetchDepth: 0
-
-          - template: deploy-action/azure-templates.yml
+          - template: .azure/deploy-template.yml
             parameters:
               orgId: $(ARC_XP_ORG_ID)
               apiKey: $(ARC_XP_API_KEY)
@@ -179,34 +139,66 @@ stages:
               minimumRunningVersions: '7'
 ```
 
-## Managing Submodules
+## How It Works
 
-### Update submodule to latest version
+The template:
+1. **Downloads** the latest deployment script from GitHub (branch: `feature/azure-provider`)
+2. **Exports** all parameters as `INPUT_*` environment variables
+3. **Executes** the Node.js script with those environment variables
 
-```bash
-git submodule update --remote deploy-action
-```
+## Multi-Environment Deployments
 
-### Remove a submodule
+Deploy to multiple environments by creating separate variable groups:
 
-```bash
-git submodule deinit -f deploy-action
-rm -rf .git/modules/deploy-action
-git rm -f deploy-action
-git commit -m "Remove deploy-action submodule"
+```yaml
+stages:
+  - stage: DeployDev
+    displayName: 'Deploy to Dev'
+    jobs:
+      - job: DeployJob
+        variables:
+          - group: arcxp-dev-secrets
+        steps:
+          - template: .azure/deploy-template.yml
+            parameters:
+              orgId: $(ARC_XP_ORG_ID)
+              apiKey: $(ARC_XP_API_KEY)
+              apiHostname: $(ARC_XP_API_HOSTNAME)
+              bundlePrefix: 'my-bundle-dev'
+
+  - stage: DeployProd
+    displayName: 'Deploy to Production'
+    dependsOn: DeployDev
+    condition: succeeded()
+    jobs:
+      - job: DeployJob
+        variables:
+          - group: arcxp-prod-secrets
+        steps:
+          - template: .azure/deploy-template.yml
+            parameters:
+              orgId: $(ARC_XP_ORG_ID)
+              apiKey: $(ARC_XP_API_KEY)
+              apiHostname: $(ARC_XP_API_HOSTNAME)
+              bundlePrefix: 'my-bundle-prod'
 ```
 
 ## Troubleshooting
 
-### Submodule shows as "dirty"
+### Download fails
 
-```bash
-git submodule update --init --recursive
-```
+If the deployment script fails to download:
+- Check that your Azure Pipeline agent has internet access
+- Verify the GitHub URL is correct and the branch exists
+- Check firewall rules allow access to `raw.githubusercontent.com`
 
-### Task not found error
+### Deployment fails with "Invalid credentials"
 
-Ensure:
-1. The submodule is properly initialized: `git submodule update --init`
-2. The path in the task reference matches your submodule directory
-3. You're using the correct task version (`@2`)
+- Verify the variable group is linked: `variables: - group: arcxp-secrets`
+- Ensure API key is marked as secret in the variable group
+- Check that `orgId` and `apiHostname` match your Arc XP environment
+
+### Wrong environment deployed
+
+- Verify you're using the correct variable group for the stage
+- Check that parameters are using the correct variable names (e.g., `$(ARC_XP_ORG_ID)` not `$(DEV_ORG_ID)`)

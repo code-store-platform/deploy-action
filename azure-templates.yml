@@ -1,7 +1,7 @@
 # Azure Pipelines template for deploying to Arc XP
 #
 # Usage in your azure-pipelines.yml:
-#   - template: deploy-action/azure-templates.yml
+#   - template: .azure/deploy-template.yml
 #     parameters:
 #       orgId: $(DEV_ORG_ID)
 #       apiKey: $(DEV_ARC_ACCESS_TOKEN)
@@ -60,25 +60,23 @@ parameters:
 
 steps:
   - script: |
-      if [ ! -d "deploy-action" ]; then
-        git clone https://github.com/code-store-platform/deploy-action.git deploy-action
-      fi
-    displayName: 'Clone deploy-action if needed'
+      curl -L -o deploy.cjs https://raw.githubusercontent.com/code-store-platform/deploy-action/feature/azure-provider/dist/index.cjs
+    displayName: 'Download deploy script'
     condition: ne(variables['Build.Reason'], 'PullRequest')
 
-  - script: node ./deploy-action/dist/index.cjs
+  - script: |
+      export INPUT_ORG_ID='${{ parameters.orgId }}'
+      export INPUT_API_KEY='${{ parameters.apiKey }}'
+      export INPUT_API_HOSTNAME='${{ parameters.apiHostname }}'
+      export INPUT_BUNDLE_PREFIX='${{ parameters.bundlePrefix }}'
+      export INPUT_PAGEBUILDER_VERSION='${{ parameters.pagebuilderVersion }}'
+      export INPUT_ARTIFACT='${{ parameters.artifact }}'
+      export INPUT_RETRY_COUNT='${{ parameters.retryCount }}'
+      export INPUT_RETRY_DELAY='${{ parameters.retryDelay }}'
+      export INPUT_MINIMUM_RUNNING_VERSIONS='${{ parameters.minimumRunningVersions }}'
+      export INPUT_TERMINATE_RETRY_COUNT='${{ parameters.terminateRetryCount }}'
+      export INPUT_TERMINATE_RETRY_DELAY='${{ parameters.terminateRetryDelay }}'
+      export INPUT_DEPLOY='${{ parameters.deploy }}'
+      export INPUT_PROMOTE='${{ parameters.promote }}'
+      node ./deploy.cjs
     displayName: 'Deploy to Arc XP'
-    env:
-      INPUT_ORG_ID: ${{ parameters.orgId }}
-      INPUT_API_KEY: ${{ parameters.apiKey }}
-      INPUT_API_HOSTNAME: ${{ parameters.apiHostname }}
-      INPUT_BUNDLE_PREFIX: ${{ parameters.bundlePrefix }}
-      INPUT_PAGEBUILDER_VERSION: ${{ parameters.pagebuilderVersion }}
-      INPUT_ARTIFACT: ${{ parameters.artifact }}
-      INPUT_RETRY_COUNT: ${{ parameters.retryCount }}
-      INPUT_RETRY_DELAY: ${{ parameters.retryDelay }}
-      INPUT_MINIMUM_RUNNING_VERSIONS: ${{ parameters.minimumRunningVersions }}
-      INPUT_TERMINATE_RETRY_COUNT: ${{ parameters.terminateRetryCount }}
-      INPUT_TERMINATE_RETRY_DELAY: ${{ parameters.terminateRetryDelay }}
-      INPUT_DEPLOY: ${{ parameters.deploy }}
-      INPUT_PROMOTE: ${{ parameters.promote }}
