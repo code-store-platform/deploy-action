@@ -3,8 +3,20 @@ const { HttpClient } = require('@actions/http-client')
 const { BaseProvider } = require('./base-provider.cjs')
 
 class AzureProvider extends BaseProvider {
+  _getEnvInputKey(name) {
+    return 'INPUT_' + name.replace(/([a-z])([A-Z])/g, '$1_$2')  // camelCase to snake_case
+      .replace(/([a-z])([A-Z])/g, '$1_$2')  // camelCase to snake_case
+      .replace(/\./g, '_')
+      .replace(/ /g, '_')
+      .toUpperCase();
+  }
+
+  _getFromEnv(name) {
+    return process.env[this._getEnvInputKey(name)];  
+  }
+
   getInput(name) {
-    return tl.getInput(name, false)
+    return tl.getInput(name, false) || this._getFromEnv(name)
   }
 
   debug(message) {
