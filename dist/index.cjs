@@ -40103,7 +40103,7 @@ var require_validation = __commonJS({
     var process2 = require("node:process");
     var { existsSync } = require("node:fs");
     var verifyArtifact = async ({ core, artifact }) => {
-      if (!artifact.match(/^[a-z0-9_./ -]+?\.zip$/i)) {
+      if (!artifact?.match(/^[a-z0-9_./ -]+?\.zip$/i)) {
         return core.setFailed(
           `File ${artifact} is not a valid artifact. It must be a ZIP file.`
         );
@@ -40112,7 +40112,7 @@ var require_validation = __commonJS({
         return core.setFailed(`Could not find artifact \xAB${artifact}\xBB`);
       }
     };
-    var verifyArcHost2 = ({ core, apiHostname }) => apiHostname.match(/^[a-z0-9_.-]+?\.arcpublishing\.(com)$/i) ? true : core.setFailed(`Host name '${apiHostname}' is not valid.`) && process2.exit(-1);
+    var verifyArcHost2 = ({ core, apiHostname }) => apiHostname?.match(/^[a-z0-9_.-]+?\.arcpublishing\.(com)$/i) ? true : core.setFailed(`Host name '${apiHostname}' is not valid.`) && process2.exit(-1);
     var verifyMinimumRunningVersions2 = ({ core, minimumRunningVersions }) => minimumRunningVersions >= 1 && minimumRunningVersions <= 10 ? true : core.setFailed(
       `Minimum running versions '${minimumRunningVersions}' is not valid. Must be between 1 and 10.`
     );
@@ -40301,7 +40301,7 @@ runContext.bundleName = [
 ].join("-");
 var retryDelayWait = () => new Promise((res) => setTimeout(() => res(), runContext.retryDelay * 1e3));
 var main = async () => {
-  runContext.core.debug("Starting. Using provider: " + provider.constructor.name);
+  runContext.core.info(`Starting. Using provider: ${provider.constructor.name}`);
   verifyMinimumRunningVersions(runContext);
   verifyArcHost(runContext);
   verifyPageBuilderVersion(runContext);

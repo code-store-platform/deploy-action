@@ -2,7 +2,7 @@ const process = require('node:process')
 const { existsSync } = require('node:fs')
 
 const verifyArtifact = async ({ core, artifact }) => {
-  if (!artifact.match(/^[a-z0-9_./ -]+?\.zip$/i)) {
+  if (!artifact?.match(/^[a-z0-9_./ -]+?\.zip$/i)) {
     return core.setFailed(
       `File ${artifact} is not a valid artifact. It must be a ZIP file.`,
     )
@@ -14,7 +14,7 @@ const verifyArtifact = async ({ core, artifact }) => {
 }
 
 const verifyArcHost = ({ core, apiHostname }) =>
-  apiHostname.match(/^[a-z0-9_.-]+?\.arcpublishing\.(com)$/i)
+  apiHostname?.match(/^[a-z0-9_.-]+?\.arcpublishing\.(com)$/i)
     ? true
     : core.setFailed(`Host name '${apiHostname}' is not valid.`) &&
       process.exit(-1)
