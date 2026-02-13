@@ -25,6 +25,7 @@ const retryDelayWait = () =>
   new Promise((res) => setTimeout(() => res(), runContext.retryDelay * 1000))
 
 const main = async () => {
+  runContext.core.debug('Starting. Using provider: ' + provider.constructor.name)
   // A little validation
   verifyMinimumRunningVersions(runContext)
   verifyArcHost(runContext)
