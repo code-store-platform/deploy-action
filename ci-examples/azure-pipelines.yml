@@ -1,0 +1,121 @@
+trigger:
+  branches:
+    include:
+      - dev
+      - main
+  tags:
+    include:
+      - '*'
+
+pr: []
+
+variables:
+  FUSION_RELEASE: 7.0.2
+
+stages:
+  - stage: Build
+    displayName: 'Build'
+    jobs:
+      - job: BuildJob
+        displayName: 'Build Bundle'
+        pool:
+          vmImage: 'ubuntu-latest'
+
+        steps:
+          - checkout: self
+            displayName: 'Checkout the code'
+
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '20'
+            displayName: 'Set up Node'
+
+          - script: |
+              echo "@wpmedia:registry=https://npm.pkg.github.com/" > .npmrc
+              echo "//npm.pkg.github.com/:_authToken=$(NPM_TOKEN)" >> .npmrc
+            displayName: 'Configure .npmrc'
+            env:
+              NPM_TOKEN: $(NPM_TOKEN)
+
+          - script: npm install
+            displayName: 'Install dependencies'
+
+          - script: |
+              echo "FUSION_RELEASE=$(FUSION_RELEASE)" > .env
+            displayName: 'Create .env for build'
+
+          - script: |
+              if [[ "$(Build.SourceBranch)" == refs/tags/* ]]; then
+                node zip.js --action --prod
+              else
+                node zip.js --action
+              fi
+            displayName: 'Build bundle'
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: 'dist/fusion-bundle.zip'
+              artifact: 'fusion-bundle'
+              publishLocation: 'pipeline'
+            displayName: 'Publish bundle artifact'
+
+  - stage: DeployDev
+    displayName: 'Deploy to Dev'
+    dependsOn: Build
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'))
+    jobs:
+      - job: CheckoutAndClone
+        displayName: 'Deploy to Sandbox'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifactName: 'fusion-bundle'
+              targetPath: 'dist/'
+            displayName: 'Download bundle'
+          - template: .azure/deploy-template.yml
+            parameters:
+              orgId: $(DEV_ORG_ID)
+              apiKey: $(DEV_ARC_ACCESS_TOKEN)
+              apiHostname: $(DEV_ORG_ENV_DOMAIN)
+              bundlePrefix: bundle
+              retryDelay: '30'
+              retryCount: '20'
+              promote: true
+              artifact: "./dist/fusion-bundle.zip"
+              pagebuilderVersion: $(FUSION_RELEASE)
+
+  - stage: DeployProd
+    displayName: 'Deploy to Production'
+    dependsOn: Build
+    condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+    jobs:
+      - job: CheckoutAndClone
+        displayName: 'Deploy to Production'
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - checkout: self
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifactName: 'fusion-bundle'
+              targetPath: 'dist/'
+            displayName: 'Download bundle'
+          - script: |
+              TAG_NAME=$(Build.SourceBranchName)
+              BUNDLE_PREFIX="bundle-${TAG_NAME//./-}"
+              echo "##vso[task.setvariable variable=BUNDLE_PREFIX]$BUNDLE_PREFIX"
+            displayName: 'Set bundle prefix for tags'
+          - template: .azure/deploy-template.yml
+            parameters:
+              orgId: $(PROD_ORG_ID)
+              apiKey: $(PROD_ARC_ACCESS_TOKEN)
+              apiHostname: $(PROD_ORG_ENV_DOMAIN)
+              bundlePrefix: $(BUNDLE_PREFIX)
+              retryDelay: '30'
+              retryCount: '20'
+              promote: false
+              artifact: "./dist/fusion-bundle.zip"
+              pagebuilderVersion: $(FUSION_RELEASE)

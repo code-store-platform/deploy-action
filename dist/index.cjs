@@ -16866,7 +16866,7 @@ var require_lib = __commonJS({
       return parsedUrl.protocol === "https:";
     }
     exports2.isHttps = isHttps;
-    var HttpClient2 = class {
+    var HttpClient = class {
       constructor(userAgent, handlers, requestOptions) {
         this._ignoreSslError = false;
         this._allowRedirects = true;
@@ -17310,7 +17310,7 @@ var require_lib = __commonJS({
         });
       }
     };
-    exports2.HttpClient = HttpClient2;
+    exports2.HttpClient = HttpClient;
     var lowercaseKeys = (obj) => Object.keys(obj).reduce((c, k) => (c[k.toLowerCase()] = obj[k], c), {});
   }
 });
@@ -23283,10 +23283,250 @@ var require_github = __commonJS({
   }
 });
 
+// src/providers/base-provider.cjs
+var require_base_provider = __commonJS({
+  "src/providers/base-provider.cjs"(exports2, module2) {
+    var BaseProvider = class {
+      getInput(_name) {
+        throw new Error("getInput() must be implemented by subclass");
+      }
+      debug(_message) {
+        throw new Error("debug() must be implemented by subclass");
+      }
+      info(_message) {
+        throw new Error("info() must be implemented by subclass");
+      }
+      warning(_message) {
+        throw new Error("warning() must be implemented by subclass");
+      }
+      setFailed(_message) {
+        throw new Error("setFailed() must be implemented by subclass");
+      }
+      getContext() {
+        throw new Error("getContext() must be implemented by subclass");
+      }
+      createRunContext() {
+        throw new Error("createRunContext() must be implemented by subclass");
+      }
+      _createCoreInterface() {
+        return {
+          getInput: (name) => this.getInput(name),
+          setFailed: (message) => this.setFailed(message),
+          debug: (message) => this.debug(message),
+          info: (message) => this.info(message),
+          warning: (message) => this.warning(message)
+        };
+      }
+    };
+    module2.exports = { BaseProvider };
+  }
+});
+
+// src/providers/github-provider.cjs
+var require_github_provider = __commonJS({
+  "src/providers/github-provider.cjs"(exports2, module2) {
+    var core = require_core();
+    var github = require_github();
+    var { HttpClient } = require_lib();
+    var { BaseProvider } = require_base_provider();
+    var GitHubProvider = class extends BaseProvider {
+      getInput(name) {
+        return core.getInput(name);
+      }
+      debug(message) {
+        core.debug(message);
+      }
+      info(message) {
+        core.info(message);
+      }
+      warning(message) {
+        core.warning(message);
+      }
+      setFailed(message) {
+        core.setFailed(message);
+      }
+      getContext() {
+        return {
+          ref_name: github.context.ref_name,
+          sha: github.context.sha
+        };
+      }
+      createRunContext() {
+        const apiKey = this.getInput("api-key");
+        const context = this.getContext();
+        return {
+          context,
+          orgId: this.getInput("org-id"),
+          apiKey,
+          apiHostname: this.getInput("api-hostname"),
+          bundlePrefix: this.getInput("bundle-prefix"),
+          pagebuilderVersion: this.getInput("pagebuilder-version") || "latest",
+          artifact: this.getInput("artifact") || "dist/fusion-bundle.zip",
+          retryCount: parseInt(this.getInput("retry-count") || "10"),
+          retryDelay: parseInt(this.getInput("retry-delay") || "5"),
+          minimumRunningVersions: parseInt(this.getInput("minimum-running-versions") || "7"),
+          terminateRetryCount: parseInt(this.getInput("terminate-retry-count") || "3"),
+          terminateRetryDelay: parseInt(this.getInput("terminate-retry-delay") || "10"),
+          shouldDeploy: ["true", true].includes(this.getInput("deploy")),
+          shouldPromote: ["true", true].includes(this.getInput("promote")),
+          client: new HttpClient("nodejs - GitHub Actions - arcxp/deploy-action", [], {
+            headers: { Authorization: `Bearer ${apiKey}` }
+          }),
+          core: this._createCoreInterface()
+        };
+      }
+    };
+    module2.exports = { GitHubProvider };
+  }
+});
+
+// src/providers/azure-provider.cjs
+var require_azure_provider = __commonJS({
+  "src/providers/azure-provider.cjs"(exports2, module2) {
+    var { HttpClient } = require_lib();
+    var { BaseProvider } = require_base_provider();
+    var AzureProvider = class extends BaseProvider {
+      _getEnvInputKey(name) {
+        return "INPUT_" + name.replace(/([a-z])([A-Z])/g, "$1_$2").replace(/\./g, "_").replace(/ /g, "_").toUpperCase();
+      }
+      _getFromEnv(name) {
+        const key = this._getEnvInputKey(name);
+        return process.env[key];
+      }
+      getInput(name) {
+        return this._getFromEnv(name);
+      }
+      debug(message) {
+        console.log(`[DEBUG] ${message}`);
+      }
+      info(message) {
+        console.log(message);
+      }
+      warning(message) {
+        console.warn(`[WARNING] ${message}`);
+      }
+      setFailed(message) {
+        console.error(`[ERROR] ${message}`);
+        process.exit(1);
+      }
+      getContext() {
+        return {
+          ref_name: (process.env.BUILD_SOURCEBRANCH || "").replace(/^refs\/heads\//, "").replace(/^refs\/tags\//, ""),
+          sha: process.env.BUILD_SOURCEVERSION || ""
+        };
+      }
+      createRunContext() {
+        const apiKey = this.getInput("apiKey");
+        const context = this.getContext();
+        return {
+          context,
+          orgId: this.getInput("orgId"),
+          apiKey,
+          apiHostname: this.getInput("apiHostname"),
+          bundlePrefix: this.getInput("bundlePrefix"),
+          pagebuilderVersion: this.getInput("pagebuilderVersion") || "latest",
+          artifact: this.getInput("artifact") || "dist/fusion-bundle.zip",
+          retryCount: parseInt(this.getInput("retryCount") || "10"),
+          retryDelay: parseInt(this.getInput("retryDelay") || "5"),
+          minimumRunningVersions: parseInt(this.getInput("minimumRunningVersions") || "7"),
+          terminateRetryCount: parseInt(this.getInput("terminateRetryCount") || "3"),
+          terminateRetryDelay: parseInt(this.getInput("terminateRetryDelay") || "10"),
+          shouldDeploy: this.getInput("deploy") !== "false",
+          shouldPromote: this.getInput("promote") !== "false",
+          client: new HttpClient("nodejs - Azure Pipelines - arcxp/deploy-action", [], {
+            headers: { Authorization: `Bearer ${apiKey}` }
+          }),
+          core: this._createCoreInterface()
+        };
+      }
+    };
+    module2.exports = { AzureProvider };
+  }
+});
+
+// src/providers/gitlab-provider.cjs
+var require_gitlab_provider = __commonJS({
+  "src/providers/gitlab-provider.cjs"(exports2, module2) {
+    var { HttpClient } = require_lib();
+    var { BaseProvider } = require_base_provider();
+    var GitLabProvider = class extends BaseProvider {
+      getInput(name) {
+        return process.env[`INPUT_${name.toUpperCase().replace(/-/g, "_")}`] || "";
+      }
+      debug(message) {
+        console.log(`[DEBUG] ${message}`);
+      }
+      info(message) {
+        console.log(message);
+      }
+      warning(message) {
+        console.warn(`[WARNING] ${message}`);
+      }
+      setFailed(message) {
+        console.error(`[ERROR] ${message}`);
+        process.exit(1);
+      }
+      getContext() {
+        return {
+          ref_name: process.env.CI_COMMIT_REF_NAME || "",
+          sha: process.env.CI_COMMIT_SHA || ""
+        };
+      }
+      createRunContext() {
+        const apiKey = this.getInput("api-key");
+        const context = this.getContext();
+        return {
+          context,
+          orgId: this.getInput("org-id"),
+          apiKey,
+          apiHostname: this.getInput("api-hostname"),
+          bundlePrefix: this.getInput("bundle-prefix"),
+          pagebuilderVersion: this.getInput("pagebuilder-version") || "latest",
+          artifact: this.getInput("artifact") || "dist/fusion-bundle.zip",
+          retryCount: parseInt(this.getInput("retry-count") || "10"),
+          retryDelay: parseInt(this.getInput("retry-delay") || "5"),
+          minimumRunningVersions: parseInt(this.getInput("minimum-running-versions") || "7"),
+          terminateRetryCount: parseInt(this.getInput("terminate-retry-count") || "3"),
+          terminateRetryDelay: parseInt(this.getInput("terminate-retry-delay") || "10"),
+          shouldDeploy: this.getInput("deploy") !== "false",
+          shouldPromote: this.getInput("promote") !== "false",
+          client: new HttpClient("nodejs - GitLab CI - arcxp/deploy-action", [], {
+            headers: { Authorization: `Bearer ${apiKey}` }
+          }),
+          core: this._createCoreInterface()
+        };
+      }
+    };
+    module2.exports = { GitLabProvider };
+  }
+});
+
+// src/providers/index.cjs
+var require_providers = __commonJS({
+  "src/providers/index.cjs"(exports2, module2) {
+    var { GitHubProvider } = require_github_provider();
+    var { AzureProvider } = require_azure_provider();
+    var { GitLabProvider } = require_gitlab_provider();
+    var createProvider2 = () => {
+      if (process.env.GITHUB_ACTIONS) {
+        return new GitHubProvider();
+      } else if (process.env.TF_BUILD) {
+        return new AzureProvider();
+      } else if (process.env.GITLAB_CI) {
+        return new GitLabProvider();
+      } else {
+        console.warn("Unsupported CI environment. Expected GitHub Actions, Azure Pipelines, or GitLab CI. Using GitHub Actions as a fallback.");
+        return new GitHubProvider();
+      }
+    };
+    module2.exports = { createProvider: createProvider2 };
+  }
+});
+
 // src/phases/current-versions.cjs
 var require_current_versions = __commonJS({
   "src/phases/current-versions.cjs"(exports2, module2) {
-    var getCurrentVersions2 = async ({ core: core2, client, apiHostname }) => {
+    var getCurrentVersions2 = async ({ core, client, apiHostname }) => {
       let responseBody = void 0;
       let responseBodyLive = void 0;
       try {
@@ -23302,9 +23542,9 @@ var require_current_versions = __commonJS({
         return onDeckLambdas.map(({ Version }) => parseInt(Version)).sort((a, b) => a - b);
       } catch (error) {
         if (error.name === "SyntaxError") {
-          return core2.setFailed(`Unexpected response from server: ${responseBody} / ${responseBodyLive}`);
+          return core.setFailed(`Unexpected response from server: ${responseBody} / ${responseBodyLive}`);
         }
-        return core2.setFailed(error.message);
+        return core.setFailed(error.message);
       }
     };
     module2.exports = {
@@ -23318,21 +23558,21 @@ var require_validation = __commonJS({
   "src/validation.cjs"(exports2, module2) {
     var process2 = require("node:process");
     var { existsSync } = require("node:fs");
-    var verifyArtifact = async ({ core: core2, artifact }) => {
-      if (!artifact.match(/^[a-z0-9_./ -]+?\.zip$/i)) {
-        return core2.setFailed(
+    var verifyArtifact = async ({ core, artifact }) => {
+      if (!artifact?.match(/^[a-z0-9_./ -]+?\.zip$/i)) {
+        return core.setFailed(
           `File ${artifact} is not a valid artifact. It must be a ZIP file.`
         );
       }
       if (!existsSync(artifact)) {
-        return core2.setFailed(`Could not find artifact \xAB${artifact}\xBB`);
+        return core.setFailed(`Could not find artifact \xAB${artifact}\xBB`);
       }
     };
-    var verifyArcHost2 = ({ core: core2, apiHostname }) => apiHostname.match(/^[a-z0-9_.-]+?\.arcpublishing\.(com)$/i) ? true : core2.setFailed(`Host name '${apiHostname}' is not valid.`) && process2.exit(-1);
-    var verifyMinimumRunningVersions2 = ({ core: core2, minimumRunningVersions }) => minimumRunningVersions >= 1 && minimumRunningVersions <= 10 ? true : core2.setFailed(
+    var verifyArcHost2 = ({ core, apiHostname }) => apiHostname?.match(/^[a-z0-9_.-]+?\.arcpublishing\.(com)$/i) ? true : core.setFailed(`Host name '${apiHostname}' is not valid.`) && process2.exit(-1);
+    var verifyMinimumRunningVersions2 = ({ core, minimumRunningVersions }) => minimumRunningVersions >= 1 && minimumRunningVersions <= 10 ? true : core.setFailed(
       `Minimum running versions '${minimumRunningVersions}' is not valid. Must be between 1 and 10.`
     );
-    var verifyPageBuilderVersion2 = ({ core: core2, pagebuilderVersion }) => pagebuilderVersion?.match(/^(latest|[a-zA-Z0-9.-]+)$/) ? true : core2.setFailed(`PageBuilder version ${pagebuilderVersion} is not valid.`);
+    var verifyPageBuilderVersion2 = ({ core, pagebuilderVersion }) => pagebuilderVersion?.match(/^(latest|[a-zA-Z0-9.-]+)$/) ? true : core.setFailed(`PageBuilder version ${pagebuilderVersion} is not valid.`);
     module2.exports = {
       verifyArtifact,
       verifyArcHost: verifyArcHost2,
@@ -23349,13 +23589,13 @@ var require_upload = __commonJS({
     var { verifyArtifact } = require_validation();
     var { readFileSync } = require("node:fs");
     var uploadArtifact2 = async ({
-      core: core2,
+      core,
       artifact,
       bundleName,
       apiHostname,
       apiKey
     }) => {
-      await verifyArtifact({ core: core2, artifact });
+      await verifyArtifact({ core, artifact });
       try {
         const url = `https://${apiHostname}/deployments/fusion/bundles`;
         const formData = new FormData();
@@ -23365,7 +23605,7 @@ var require_upload = __commonJS({
           name: "bundle",
           filename: basename(artifact)
         });
-        core2.debug(`Making call to upload ${artifact} to ${url}`);
+        core.debug(`Making call to upload ${artifact} to ${url}`);
         const response = await fetch(url, {
           method: "POST",
           body: formData,
@@ -23378,11 +23618,11 @@ var require_upload = __commonJS({
         if (!response.ok) {
           throw Error(`Unable to upload artifact ${artifact}: ${responseText}`);
         }
-        core2.debug(`Response for upload call: ${responseText}`);
+        core.debug(`Response for upload call: ${responseText}`);
         return bundleName;
       } catch (error) {
         console.error("Failed!", error);
-        return core2.setFailed(error.message);
+        return core.setFailed(error.message);
       }
     };
     module2.exports = {
@@ -23394,16 +23634,56 @@ var require_upload = __commonJS({
 // src/phases/terminate-oldest.cjs
 var require_terminate_oldest = __commonJS({
   "src/phases/terminate-oldest.cjs"(exports2, module2) {
-    var terminateOldestVersion2 = async ({ core: core2, client, apiHostname }, oldestVersion) => {
-      try {
-        if (!oldestVersion) {
-          core2.setFailed("Unable to detect the oldest version");
-        }
-        const url = `https://${apiHostname}/deployments/fusion/services/${oldestVersion}/terminate`;
-        return await client.post(url);
-      } catch (err) {
-        core2.setFailed(err.message);
+    var terminateOldestVersion2 = async ({ core, client, apiHostname, terminateRetryCount, terminateRetryDelay }, oldestVersion) => {
+      const retryDelay = (seconds) => new Promise((res) => setTimeout(() => res(), seconds * 1e3));
+      const result = {
+        version: oldestVersion,
+        success: false,
+        attempts: [],
+        finalError: null
+      };
+      if (!oldestVersion) {
+        const error = "Unable to detect the oldest version";
+        core.warning(error);
+        result.finalError = error;
+        return result;
       }
+      const url = `https://${apiHostname}/deployments/fusion/services/${oldestVersion}/terminate`;
+      const maxAttempts = parseInt(terminateRetryCount) || 3;
+      const delaySeconds = parseInt(terminateRetryDelay) || 10;
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+          core.debug(`Attempt ${attempt}/${maxAttempts}: Terminating version ${oldestVersion}`);
+          const response = await client.post(url);
+          result.attempts.push({
+            attempt,
+            success: true,
+            timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+            status: response.statusCode
+          });
+          core.info(`Successfully terminated version ${oldestVersion} on attempt ${attempt}`);
+          result.success = true;
+          return result;
+        } catch (err) {
+          result.attempts.push({
+            attempt,
+            success: false,
+            timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+            error: err.message
+          });
+          core.warning(`Attempt ${attempt}/${maxAttempts} failed to terminate version ${oldestVersion}: ${err.message}`);
+          if (attempt < maxAttempts) {
+            core.debug(`Waiting ${delaySeconds} seconds before retry...`);
+            await retryDelay(delaySeconds);
+          } else {
+            result.finalError = err.message;
+            core.warning(
+              `Failed to terminate version ${oldestVersion} after ${maxAttempts} attempts. Proceeding with deployment. Error: ${err.message}`
+            );
+          }
+        }
+      }
+      return result;
     };
     module2.exports = { terminateOldestVersion: terminateOldestVersion2 };
   }
@@ -23413,19 +23693,19 @@ var require_terminate_oldest = __commonJS({
 var require_promote_version = __commonJS({
   "src/phases/promote-version.cjs"(exports2, module2) {
     var promoteNewVersion2 = async ({
-      core: core2,
+      core,
       client,
       apiHostname,
       newestVersion: versionToPromote
     }) => {
       try {
         if (!versionToPromote) {
-          core2.setFailed("Unable to detect the new version");
+          core.setFailed("Unable to detect the new version");
         }
         const url = `https://${apiHostname}/deployments/fusion/services/${versionToPromote}/promote`;
         return await client.post(url);
       } catch (err) {
-        core2.setFailed(err.message);
+        core.setFailed(err.message);
       }
     };
     module2.exports = { promoteNewVersion: promoteNewVersion2 };
@@ -23436,7 +23716,7 @@ var require_promote_version = __commonJS({
 var require_deploy_version = __commonJS({
   "src/phases/deploy-version.cjs"(exports2, module2) {
     var deployLatestVersion2 = async ({
-      core: core2,
+      core,
       client,
       apiHostname,
       bundleName,
@@ -23448,7 +23728,7 @@ var require_deploy_version = __commonJS({
         )}&version=${pagebuilderVersion ?? "latest"}`;
         return await client.post(url);
       } catch (err) {
-        core2.setFailed(err.message);
+        core.setFailed(err.message);
       }
     };
     module2.exports = { deployLatestVersion: deployLatestVersion2 };
@@ -23456,9 +23736,7 @@ var require_deploy_version = __commonJS({
 });
 
 // src/index.cjs
-var core = require_core();
-var github = require_github();
-var { HttpClient } = require_lib();
+var { createProvider } = require_providers();
 var { getCurrentVersions } = require_current_versions();
 var { uploadArtifact } = require_upload();
 var { terminateOldestVersion } = require_terminate_oldest();
@@ -23469,24 +23747,8 @@ var {
   verifyArcHost,
   verifyPageBuilderVersion
 } = require_validation();
-var runContext = {
-  context: github.context,
-  orgId: core.getInput("org-id"),
-  apiKey: core.getInput("api-key"),
-  apiHostname: core.getInput("api-hostname"),
-  bundlePrefix: core.getInput("bundle-prefix"),
-  pagebuilderVersion: core.getInput("pagebuilder-version"),
-  artifact: core.getInput("artifact"),
-  retryCount: core.getInput("retry-count"),
-  retryDelay: core.getInput("retry-delay"),
-  minimumRunningVersions: core.getInput("minimum-running-versions"),
-  shouldDeploy: ["true", true].includes(core.getInput("deploy")),
-  shouldPromote: ["true", true].includes(core.getInput("promote")),
-  client: new HttpClient("nodejs - GitHub Actions - arcxp/deploy-action", [], {
-    headers: { Authorization: `Bearer ${core.getInput("api-key")}` }
-  }),
-  core
-};
+var provider = createProvider();
+var runContext = provider.createRunContext();
 runContext.bundleName = [
   runContext.bundlePrefix ?? "bundle",
   (/* @__PURE__ */ new Date()).getTime(),
@@ -23495,16 +23757,17 @@ runContext.bundleName = [
 ].join("-");
 var retryDelayWait = () => new Promise((res) => setTimeout(() => res(), runContext.retryDelay * 1e3));
 var main = async () => {
+  runContext.core.info(`Starting. Using provider: ${provider.constructor.name}`);
   verifyMinimumRunningVersions(runContext);
   verifyArcHost(runContext);
   verifyPageBuilderVersion(runContext);
   if (runContext.shouldDeploy === false && runContext.shouldPromote === true) {
-    return core.setFailed("If `promote` is true, `deploy` must also be true.");
+    return runContext.core.setFailed("If `promote` is true, `deploy` must also be true.");
   }
   const currentVersions = await getCurrentVersions(runContext);
-  core.debug("currentVersions", JSON.stringify(currentVersions, void 0, 2));
+  runContext.core.debug("currentVersions", JSON.stringify(currentVersions, void 0, 2));
   if (!Array.isArray(currentVersions) || !currentVersions.length) {
-    return core.setFailed("Unable to determine current versions.");
+    return runContext.core.setFailed("Unable to determine current versions.");
   }
   const oldestVersion = currentVersions[0];
   const latestVersion = currentVersions[currentVersions.length - 1];
@@ -23513,7 +23776,7 @@ var main = async () => {
     await deployLatestVersion(runContext);
     if (currentVersions.length > runContext.minimumRunningVersions) {
       const termResults = terminateOldestVersion(runContext, oldestVersion);
-      core.debug(
+      runContext.core.debug(
         "terminateOldestVersionResults",
         JSON.stringify(termResults, void 0, 2)
       );
@@ -23522,7 +23785,7 @@ var main = async () => {
     let newestVersion = void 0;
     while (retriesRemaining >= 0) {
       const newVersions = await getCurrentVersions(runContext);
-      core.debug(`New versions: ${JSON.stringify(newVersions, void 0, 2)}`);
+      runContext.core.debug(`New versions: ${JSON.stringify(newVersions, void 0, 2)}`);
       if (!!newVersions && newVersions[newVersions.length - 1] !== latestVersion) {
         newestVersion = newVersions[newVersions.length - 1];
         break;
@@ -23531,7 +23794,7 @@ var main = async () => {
       retriesRemaining -= 1;
     }
     if (!newestVersion) {
-      return core.setFailed(
+      return runContext.core.setFailed(
         `We retried ${runContext.retryCount} times with ${runContext.retryDelay} seconds between retries. Unfortunately, the new version does not appear to have deployed successfully. Please check logs, and contact support if this problem continues.
 
 You may wish to retry this action again, but with debugging enabled.`
@@ -23543,7 +23806,7 @@ You may wish to retry this action again, but with debugging enabled.`
     await promoteNewVersion(runContext);
   }
 };
-main().finally(() => core.debug("Finished."));
+main().finally(() => runContext.core.debug("Finished."));
 /*! Bundled license information:
 
 undici/lib/fetch/body.js:

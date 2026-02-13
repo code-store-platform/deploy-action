@@ -1,0 +1,39 @@
+# GitLab CI reusable job template for deploying to Arc XP
+#
+# Usage in your .gitlab-ci.yml (with submodule):
+#   include:
+#     - local: 'deploy-action/gitlab-templates.yml'
+#
+#   deploy_arcxp:
+#     extends: .deploy_to_arcxp
+#     variables:
+#       ARC_XP_ORG_ID: $ARC_XP_ORG_ID
+#       ARC_XP_API_KEY: $ARC_XP_API_KEY
+#       ARC_XP_API_HOSTNAME: $ARC_XP_API_HOSTNAME
+#       BUNDLE_PREFIX: "my-bundle"
+#
+
+.deploy_to_arcxp:
+  image: node:20
+  stage: deploy
+  script:
+    # Clone deploy-action if not already present (works with or without submodules)
+    - |
+      if [ ! -d "deploy-action" ]; then
+        git clone https://github.com/code-store-platform/deploy-action.git deploy-action
+      fi
+    - node deploy-action/dist/index.cjs
+  variables:
+    INPUT_ORG_ID: $ARC_XP_ORG_ID
+    INPUT_API_KEY: $ARC_XP_API_KEY
+    INPUT_API_HOSTNAME: $ARC_XP_API_HOSTNAME
+    INPUT_BUNDLE_PREFIX: $BUNDLE_PREFIX
+    INPUT_PAGEBUILDER_VERSION: ${PAGEBUILDER_VERSION:-latest}
+    INPUT_ARTIFACT: ${ARTIFACT:-dist/fusion-bundle.zip}
+    INPUT_RETRY_COUNT: ${RETRY_COUNT:-10}
+    INPUT_RETRY_DELAY: ${RETRY_DELAY:-5}
+    INPUT_MINIMUM_RUNNING_VERSIONS: ${MINIMUM_RUNNING_VERSIONS:-7}
+    INPUT_TERMINATE_RETRY_COUNT: ${TERMINATE_RETRY_COUNT:-3}
+    INPUT_TERMINATE_RETRY_DELAY: ${TERMINATE_RETRY_DELAY:-10}
+    INPUT_DEPLOY: ${DEPLOY:-true}
+    INPUT_PROMOTE: ${PROMOTE:-true}

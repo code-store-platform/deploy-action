@@ -1,0 +1,82 @@
+# Azure Pipelines template for deploying to Arc XP
+#
+# Usage in your azure-pipelines.yml:
+#   - template: .azure/deploy-template.yml
+#     parameters:
+#       orgId: $(DEV_ORG_ID)
+#       apiKey: $(DEV_ARC_ACCESS_TOKEN)
+#       apiHostname: $(DEV_ORG_ENV_DOMAIN)
+#       bundlePrefix: 'bundle'
+
+parameters:
+  - name: orgId
+    displayName: Organization ID
+    type: string
+  - name: apiKey
+    displayName: API Key
+    type: string
+  - name: apiHostname
+    displayName: API Hostname
+    type: string
+  - name: bundlePrefix
+    displayName: Bundle Prefix
+    type: string
+  - name: pagebuilderVersion
+    displayName: PageBuilder Version
+    type: string
+    default: latest
+  - name: artifact
+    displayName: Artifact Path
+    type: string
+    default: dist/fusion-bundle.zip
+  - name: retryCount
+    displayName: Retry Count
+    type: string
+    default: '10'
+  - name: retryDelay
+    displayName: Retry Delay (seconds)
+    type: string
+    default: '5'
+  - name: minimumRunningVersions
+    displayName: Minimum Running Versions
+    type: string
+    default: '7'
+  - name: terminateRetryCount
+    displayName: Terminate Retry Count
+    type: string
+    default: '3'
+  - name: terminateRetryDelay
+    displayName: Terminate Retry Delay (seconds)
+    type: string
+    default: '10'
+  - name: deploy
+    displayName: Deploy
+    type: boolean
+    default: true
+  - name: promote
+    displayName: Promote
+    type: boolean
+    default: true
+
+steps:
+  - script: |
+      curl -L -o deploy.cjs https://raw.githubusercontent.com/code-store-platform/deploy-action/feature/azure-provider/dist/index.cjs
+    displayName: 'Download deploy script'
+    condition: ne(variables['Build.Reason'], 'PullRequest')
+
+  - script: |
+      export INPUT_ORG_ID='${{ parameters.orgId }}'
+      export INPUT_API_KEY='${{ parameters.apiKey }}'
+      export INPUT_API_HOSTNAME='${{ parameters.apiHostname }}'
+      export INPUT_BUNDLE_PREFIX='${{ parameters.bundlePrefix }}'
+      export INPUT_PAGEBUILDER_VERSION='${{ parameters.pagebuilderVersion }}'
+      export INPUT_ARTIFACT='${{ parameters.artifact }}'
+      export INPUT_RETRY_COUNT='${{ parameters.retryCount }}'
+      export INPUT_RETRY_DELAY='${{ parameters.retryDelay }}'
+      export INPUT_MINIMUM_RUNNING_VERSIONS='${{ parameters.minimumRunningVersions }}'
+      export INPUT_TERMINATE_RETRY_COUNT='${{ parameters.terminateRetryCount }}'
+      export INPUT_TERMINATE_RETRY_DELAY='${{ parameters.terminateRetryDelay }}'
+      export INPUT_DEPLOY='${{ parameters.deploy }}'
+      export INPUT_PROMOTE='${{ parameters.promote }}'
+      node ./deploy.cjs
+    displayName: 'Deploy to Arc XP'

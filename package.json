@@ -1,16 +1,17 @@
 {
   "name": "deploy-action",
-  "version": "1.1.5",
-  "description": "A GitHub Action which allows for deployments to the Arc XP platform.",
+  "version": "2.0.0",
+  "description": "A GitHub Action and Azure Pipelines task which allows for deployments to the Arc XP platform.",
   "main": "src/index.cjs",
   "scripts": {
     "build": "esbuild src/index.cjs --bundle --platform=node --resolve-extensions=.cjs,.ts,.js --target=node20 --outfile=dist/index.cjs",
+    "lint": "eslint src/**/*.cjs",
     "clean": "rm -rf dist/*",
     "test": "jest"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/arcxp/deploy-action.git"
+    "url": "git+https://github.com/code-store-platform/deploy-action.git"
   },
   "keywords": [
     "github",
@@ -22,15 +23,16 @@
   "license": "MIT",
   "type": "commonjs",
   "bugs": {
-    "url": "https://github.com/arcxp/deploy-action/issues"
+    "url": "https://github.com/code-store-platform/deploy-action/issues"
   },
-  "homepage": "https://github.com/arcxp/deploy-action#readme",
+  "homepage": "https://github.com/code-store-platform/deploy-action#readme",
   "devDependencies": {
     "@jest/globals": "^30.1.2",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.3.1",
     "esbuild": "^0.25.9",
     "eslint": "^9.35.0",
+    "globals": "^17.3.0",
     "jest": "^30.1.3",
     "jest-diff": "^30.1.2",
     "jest-watcher": "^30.1.3",
